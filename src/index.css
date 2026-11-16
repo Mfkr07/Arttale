@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The Artist's Sketchbook — Design System
+   All colors MUST be HSL. Off-white paper, black ink, violet accents.
+*/
+
+@layer base {
+  :root {
+    /* Paper & Ink */
+    --background: 40 33% 98%;          /* #FAFAFA off-white paper */
+    --foreground: 0 0% 8%;              /* near-black ink */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+
+    /* Creative Violet — primary accent */
+    --primary: 251 75% 63%;             /* #6C5CE7 */
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 251 75% 95%;
+
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 0 0% 8%;
+
+    --muted: 40 15% 92%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 45 95% 60%;               /* warm yellow highlighter */
+    --accent-foreground: 0 0% 8%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 8%;                  /* hand-drawn ink outlines */
+    --border-soft: 0 0% 85%;
+    --input: 0 0% 8%;
+    --ring: 251 75% 63%;
+
+    --radius: 0.75rem;
+
+    /* Sketchbook gradients & shadows */
+    --gradient-violet: linear-gradient(135deg, hsl(251 75% 63%), hsl(270 70% 60%));
+    --gradient-paper: linear-gradient(180deg, hsl(40 33% 98%), hsl(40 25% 95%));
+    --shadow-sketch: 4px 4px 0 0 hsl(0 0% 8%);
+    --shadow-sketch-sm: 2px 2px 0 0 hsl(0 0% 8%);
+    --shadow-violet: 4px 4px 0 0 hsl(251 75% 63%);
+
+    --font-hand: 'Caveat', 'Kalam', cursive;
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 0 0% 8%;
+    --foreground: 40 33% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 40 33% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 40 33% 98%;
+    --primary: 251 75% 70%;
+    --primary-foreground: 0 0% 8%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 40 33% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 45 95% 60%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 40 33% 98%;
+    --border: 40 33% 98%;
+    --border-soft: 0 0% 25%;
+    --input: 40 33% 98%;
+    --ring: 251 75% 70%;
+  }
+}
+
+@layer base {
+  * { @apply border-border-soft; }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(0 0% 8% / 0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  h1, h2, h3, h4 { @apply font-sans tracking-tight; }
+}
+
+@layer components {
+  /* Hand-drawn sketch border — slightly imperfect */
+  .sketch-border {
+    @apply border-2 border-foreground rounded-lg;
+    box-shadow: var(--shadow-sketch);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .sketch-border:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 hsl(var(--foreground));
+  }
+  .sketch-border-violet {
+    @apply border-2 border-foreground rounded-lg;
+    box-shadow: var(--shadow-violet);
+  }
+  .sketch-border-sm {
+    @apply border-2 border-foreground rounded-md;
+    box-shadow: var(--shadow-sketch-sm);
+  }
+
+  /* Dashed hand-drawn outline */
+  .sketch-dashed {
+    border: 2px dashed hsl(var(--foreground));
+    border-radius: 0.75rem;
+  }
+
+  /* Handwritten title */
+  .font-hand {
+    font-family: var(--font-hand);
+    font-weight: 700;
+  }
+
+  /* Violet brush highlight behind text */
+  .brush-highlight {
+    position: relative;
+    display: inline-block;
+  }
+  .brush-highlight::before {
+    content: '';
+    position: absolute;
+    inset: 10% -4% 5% -4%;
+    background: hsl(var(--primary) / 0.35);
+    z-index: -1;
+    border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
+    transform: rotate(-1deg);
+  }
+
+  /* Yellow highlighter underline */
+  .ink-underline {
+    background-image: linear-gradient(transparent 70%, hsl(var(--accent) / 0.6) 70%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  /* Paper card */
+  .paper-card {
+    @apply bg-card border-2 border-foreground rounded-xl;
+    box-shadow: var(--shadow-sketch);
+  }
+
+  /* Doodle wiggle on hover */
+  .doodle-hover {
+    transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+  }
+  .doodle-hover:hover { transform: rotate(-2deg) scale(1.03); }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+}
