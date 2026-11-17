@@ -12,6 +12,7 @@ import com.arttale.app.presentation.catalog.CatalogScreen
 import com.arttale.app.presentation.checkout.CheckoutScreen
 import com.arttale.app.presentation.creator.UploadStudioScreen
 import com.arttale.app.presentation.detail.ProductDetailScreen
+import com.arttale.app.presentation.profile.ProfileScreen
 import com.arttale.app.presentation.tribes.TribesScreen
 
 @Composable
@@ -94,6 +95,18 @@ fun NavGraph(
 
         composable(Screen.UploadStudio.route) {
             UploadStudioScreen(
+                onNavigateBottom = { screen ->
+                    navController.navigate(screen.route) {
+                        popUpTo(Screen.Catalog.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
                 onNavigateBottom = { screen ->
                     navController.navigate(screen.route) {
                         popUpTo(Screen.Catalog.route) { saveState = true }

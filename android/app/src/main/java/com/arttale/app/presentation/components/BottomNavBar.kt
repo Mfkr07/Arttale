@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Palette
@@ -40,6 +41,7 @@ sealed class NavItem(val screen: Screen, val title: String, val icon: ImageVecto
     data object Tribes : NavItem(Screen.Tribes, "Tribes", Icons.Default.LocalFireDepartment)
     data object Cart : NavItem(Screen.Cart, "Keranjang", Icons.Default.ShoppingBag)
     data object Studio : NavItem(Screen.UploadStudio, "Studio", Icons.Default.CloudUpload)
+    data object Profile : NavItem(Screen.Profile, "Profil", Icons.Default.AccountCircle)
 }
 
 @Composable
@@ -49,7 +51,7 @@ fun BottomNavBar(
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = listOf(NavItem.Catalog, NavItem.Tribes, NavItem.Cart, NavItem.Studio)
+    val items = listOf(NavItem.Catalog, NavItem.Tribes, NavItem.Cart, NavItem.Studio, NavItem.Profile)
 
     NavigationBar(
         modifier = modifier
