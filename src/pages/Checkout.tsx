@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart, fmt } from "@/context/CartContext";
+import { createOrderFromCheckout } from "@/lib/orders";
 import {
   Check, ChevronLeft, Minus, Plus, Trash2, MapPin, Truck,
   CreditCard, ShieldCheck, QrCode, Wallet, Building2, Tag, Sparkles,
@@ -63,15 +64,15 @@ const Stepper = ({ step }: { step: Step }) => (
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, update, remove, subtotal, count } = useCart();
+  const { items, update, remove, clear, subtotal, count } = useCart();
   const [step, setStep] = useState<Step>(1);
 
   // Shipping
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [zip, setZip] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
+  const [name, setName] = useState("Rama Pratama");
+  const [phone, setPhone] = useState("+62 812-3456-7890");
+  const [zip, setZip] = useState("12730");
+  const [address, setAddress] = useState("Jl. Kemang Selatan VIII No. 12, Bangka");
+  const [city, setCity] = useState("Jakarta Selatan");
   const [courier, setCourier] = useState("reg");
 
   // Payment
@@ -99,8 +100,33 @@ const Checkout = () => {
   const canProceedShipping = name && phone && zip && address && city;
 
   const handlePay = () => {
-    toast.success("Pesanan berhasil dibuat!");
-    setTimeout(() => navigate("/order-success"), 600);
+    const courierOpt = COURIERS.find((c) => c.id === courier) || COURIERS[0];
+    const paymentOpt = PAYMENTS.find((p) => p.id === payment)?.label || "QRIS";
+
+    const newOrder = createOrderFromCheckout({
+      items,
+      recipient: {
+        name: name.trim() || "Pembeli Arttale",
+        phone: phone.trim() || "+62 812-3456-7890",
+        address: address.trim() || "Jl. Kemang Selatan VIII No. 12",
+        city: city.trim() || "Jakarta Selatan",
+        zip: zip.trim() || "12730",
+      },
+      courierId: courierOpt.id,
+      courierName: `${courierOpt.label} ${courierOpt.icon}`,
+      courierPrice: shippingPrice,
+      courierEta: courierOpt.eta,
+      paymentMethod: paymentOpt,
+      subtotal,
+      totalTip,
+      shippingSubsidy,
+      voucherDiscount: voucherApplied,
+      total,
+    });
+
+    clear();
+    toast.success("Pesanan berhasil dibuat & masuk antrean cetak!");
+    setTimeout(() => navigate(`/order-success?id=${newOrder.id}`), 500);
   };
 
   // ==== EMPTY STATE ====

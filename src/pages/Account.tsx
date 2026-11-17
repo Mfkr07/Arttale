@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   User, Package, Heart, MapPin, CreditCard, Bell, Shield, HelpCircle,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { getStoredOrders } from "@/lib/orders";
 
 type Section =
   | "overview" | "orders" | "wishlist" | "addresses" | "payments"
@@ -188,19 +189,35 @@ const Overview = ({ stats, setSection, user }: any) => (
           </button>
         </div>
         <div className="space-y-2">
-          {[
-            { id: "INK-2841", title: "Hoodie 'Liar Tapi Tenang'", status: "Dikirim", color: "bg-primary/15 text-primary" },
-            { id: "INK-2828", title: "Pack Stiker Lokal Vol.3", status: "Selesai", color: "bg-emerald-500/15 text-emerald-700" },
-          ].map((o) => (
-            <Link to={`/track/${o.id}`} key={o.id} className="flex items-center gap-3 p-2 hover:bg-muted -mx-2 rounded">
-              <div className="w-10 h-10 bg-muted sketch-border-sm" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold truncate">{o.title}</div>
-                <div className="text-xs text-muted-foreground">{o.id}</div>
-              </div>
-              <span className={`text-[10px] font-bold px-2 py-1 ${o.color}`}>{o.status}</span>
-            </Link>
-          ))}
+          {getStoredOrders().slice(0, 3).map((o) => {
+            const statusLabel =
+              o.status === "printing" ? "Diproses" :
+              o.status === "shipping" ? "Dikirim" :
+              o.status === "delivered" ? "Selesai" : "Diproses";
+
+            const color =
+              statusLabel === "Diproses" ? "bg-accent/40 text-accent-foreground" :
+              statusLabel === "Dikirim" ? "bg-primary/15 text-primary" :
+              statusLabel === "Selesai" ? "bg-emerald-500/15 text-emerald-700" :
+              "bg-destructive/15 text-destructive";
+
+            const title = o.items.map((i) => i.title).join(", ");
+            const emoji = o.items[0]?.emoji || "📦";
+            const bg = o.items[0]?.bg || "bg-primary-soft";
+
+            return (
+              <Link to={`/track/${o.id}`} key={o.id} className="flex items-center gap-3 p-2 hover:bg-muted -mx-2 rounded transition">
+                <div className={`w-10 h-10 ${bg} sketch-border-sm flex items-center justify-center text-lg shrink-0`}>
+                  {emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold truncate">{title}</div>
+                  <div className="text-xs text-muted-foreground">{o.id}</div>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded ${color}`}>{statusLabel}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
@@ -235,40 +252,92 @@ const Overview = ({ stats, setSection, user }: any) => (
 );
 
 const Orders = () => {
-  const orders = [
-    { id: "INK-2841", date: "24 Apr 2026", title: "Hoodie 'Liar Tapi Tenang'", artist: "Bayu Krisna", total: "Rp 389.000", status: "Dikirim", color: "bg-primary/15 text-primary" },
-    { id: "INK-2828", date: "12 Apr 2026", title: "Pack Stiker Lokal Vol.3", artist: "Studio Ombak", total: "Rp 75.000", status: "Selesai", color: "bg-emerald-500/15 text-emerald-700" },
-    { id: "INK-2799", date: "02 Apr 2026", title: "Tee 'Senja Jakarta'", artist: "Rina Halim", total: "Rp 165.000", status: "Selesai", color: "bg-emerald-500/15 text-emerald-700" },
-    { id: "INK-2754", date: "18 Mar 2026", title: "Print A3 'Rumah Tua'", artist: "Adi Pranoto", total: "Rp 120.000", status: "Dibatalkan", color: "bg-destructive/15 text-destructive" },
-  ];
+  const [filter, setFilter] = useState("Semua");
+  const stored = useMemo(() => getStoredOrders(), []);
+
+  const orders = useMemo(() => {
+    return stored.map((o) => {
+      const statusText =
+        o.status === "printing" ? "Diproses" :
+        o.status === "shipping" ? "Dikirim" :
+        o.status === "delivered" ? "Selesai" : "Diproses";
+
+      const color =
+        statusText === "Diproses" ? "bg-accent/40 text-accent-foreground" :
+        statusText === "Dikirim" ? "bg-primary/15 text-primary" :
+        statusText === "Selesai" ? "bg-emerald-500/15 text-emerald-700" :
+        "bg-destructive/15 text-destructive";
+
+      const title = o.items.map((i) => i.title).join(", ");
+      const artist = o.items[0]?.artist || "Seniman Arttale";
+      const emoji = o.items[0]?.emoji || "📦";
+      const bg = o.items[0]?.bg || "bg-primary-soft";
+
+      return {
+        id: o.id,
+        date: o.createdAt.split("•")[0]?.trim() || o.createdAt,
+        title,
+        artist,
+        total: `Rp ${o.payment.total.toLocaleString("id-ID")}`,
+        status: statusText,
+        color,
+        emoji,
+        bg,
+      };
+    });
+  }, [stored]);
+
+  const filtered = useMemo(() => {
+    if (filter === "Semua") return orders;
+    return orders.filter((o) => o.status === filter);
+  }, [orders, filter]);
+
   return (
     <SectionShell title="Pesanan saya" desc="Riwayat dan status pesanan kamu.">
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {["Semua", "Diproses", "Dikirim", "Selesai", "Dibatalkan"].map((t, i) => (
-          <button key={t} className={`px-3 py-1.5 text-xs font-semibold sketch-border-sm whitespace-nowrap ${i === 0 ? "bg-foreground text-background" : "bg-card hover:bg-muted"}`}>
+        {["Semua", "Diproses", "Dikirim", "Selesai", "Dibatalkan"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setFilter(t)}
+            className={`px-3 py-1.5 text-xs font-semibold sketch-border-sm whitespace-nowrap transition ${
+              filter === t ? "bg-foreground text-background" : "bg-card hover:bg-muted"
+            }`}
+          >
             {t}
           </button>
         ))}
       </div>
       <div className="space-y-3">
-        {orders.map((o) => (
-          <div key={o.id} className="bg-card sketch-border p-4 flex flex-col sm:flex-row gap-4">
-            <div className="w-full sm:w-20 h-20 bg-muted sketch-border-sm shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-[10px] font-bold px-2 py-0.5 ${o.color}`}>{o.status}</span>
-                <span className="text-xs text-muted-foreground">{o.id} • {o.date}</span>
-              </div>
-              <div className="font-semibold mt-1">{o.title}</div>
-              <div className="text-xs text-muted-foreground">oleh {o.artist}</div>
-              <div className="font-hand text-2xl mt-1">{o.total}</div>
-            </div>
-            <div className="flex sm:flex-col gap-2 sm:justify-center">
-              <Link to={`/track/${o.id}`} className="flex-1 sm:flex-none text-center bg-foreground text-background px-4 py-2 sketch-border-sm font-semibold text-xs">Lacak</Link>
-              <Link to="/write-review" className="flex-1 sm:flex-none text-center bg-card sketch-border-sm px-4 py-2 font-semibold text-xs hover:bg-muted">Ulasan</Link>
-            </div>
+        {filtered.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground bg-card sketch-border-sm">
+            Tidak ada pesanan dengan status "{filter}".
           </div>
-        ))}
+        ) : (
+          filtered.map((o) => (
+            <div key={o.id} className="bg-card sketch-border p-4 flex flex-col sm:flex-row gap-4 items-center">
+              <div className={`w-16 h-16 sm:w-20 sm:h-20 ${o.bg} sketch-border-sm shrink-0 flex items-center justify-center text-3xl`}>
+                {o.emoji}
+              </div>
+              <div className="flex-1 min-w-0 w-full">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${o.color}`}>{o.status}</span>
+                  <span className="text-xs text-muted-foreground">{o.id} • {o.date}</span>
+                </div>
+                <div className="font-semibold mt-1 truncate">{o.title}</div>
+                <div className="text-xs text-muted-foreground">oleh {o.artist}</div>
+                <div className="font-hand text-2xl mt-1">{o.total}</div>
+              </div>
+              <div className="flex sm:flex-col gap-2 sm:justify-center w-full sm:w-auto">
+                <Link to={`/track/${o.id}`} className="flex-1 sm:flex-none text-center bg-foreground text-background px-4 py-2 sketch-border-sm font-semibold text-xs hover:bg-foreground/90">
+                  Lacak
+                </Link>
+                <Link to="/write-review" className="flex-1 sm:flex-none text-center bg-card sketch-border-sm px-4 py-2 font-semibold text-xs hover:bg-muted">
+                  Ulasan
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </SectionShell>
   );

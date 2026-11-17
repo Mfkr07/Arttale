@@ -1,11 +1,20 @@
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check, Package, Truck, Home, Copy } from "lucide-react";
+import { Check, Package, Truck, Home, Copy, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { findOrder } from "@/lib/orders";
 
 const OrderSuccess = () => {
-  const orderId = "INK-2024-" + Math.floor(Math.random() * 90000 + 10000);
+  const [searchParams] = useSearchParams();
+  const urlId = searchParams.get("id");
+
+  const orderId = useMemo(() => {
+    return urlId || ("INK-2024-" + Math.floor(Math.random() * 90000 + 10000));
+  }, [urlId]);
+
+  const order = useMemo(() => findOrder(orderId), [orderId]);
 
   const copy = () => {
     navigator.clipboard.writeText(orderId);
@@ -90,6 +99,12 @@ const OrderSuccess = () => {
 
         {/* Actions */}
         <div className="flex gap-3 flex-wrap justify-center">
+          <Link
+            to={`/track/${orderId}`}
+            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-bold sketch-border-violet inline-flex items-center gap-2 hover:translate-x-[-2px] hover:translate-y-[-2px] transition"
+          >
+            <Truck className="w-5 h-5" /> Lacak Pesanan Saya
+          </Link>
           <Link to="/catalog" className="bg-foreground text-background px-6 py-3 rounded-lg font-semibold sketch-border">
             Lanjut Belanja
           </Link>
